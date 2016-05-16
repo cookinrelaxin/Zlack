@@ -1,8 +1,8 @@
 defmodule Zlack.UserController do
   use Zlack.Web, :controller
 
-  @doc """
-    This module defines the callbacks for the part of the Zlack HTTP API that deals with users. These functions should mostly be wrappers for functions in Zlack.UserActions, in order to avoid code duplication.
+  @moduledoc """
+    This module defines the callbacks for the part of the Zlack HTTP API that deals with users. These functions should mostly be wrappers for functions in Zlack.UserActions, in order to avoid code duplication. Authentication should be performed here, not in Zlack.RoomActions.
   """
 
   alias Zlack.{UserActions}
@@ -13,29 +13,39 @@ defmodule Zlack.UserController do
   ### users
   ###
 
-  #GET /api/v1/users
-  def index(conn, _params) do
-    nil
+  @doc """
+  GET /api/v1/users?page=page
+  """
+  def index(conn, %{"page" => page) do
+    UserActions.index(%{"page => page})
   end
 
-  #POST /api/v1/users
+  @doc """
+  POST /api/v1/users
+  """
   def create(conn, _params) do
-    nil
+    UserActions.create
   end
 
-  #GET /api/v1/users/:id
+  @doc """
+  GET /api/v1/users/:id
+  """
   def show(conn, %{"id" => id}) do
-    nil
+    UserActions.show
   end
 
-  #PATCH /api/v1/users/:id and PUT /api/v1/users:id
+  @doc """
+  PATCH /api/v1/users/:id or PUT /api/v1/users:id
+  """
   def update(conn, %{"id" => id}) do
-    nil
+    UserActions.update
   end
 
-  #DELETE /api/v1/users/:id
+  @doc """
+  DELETE /api/v1/users/:id
+  """
   def delete(conn, %{"id" => id}) do
-    nil
+    UserActions.delete
   end
 
 end

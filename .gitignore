@@ -4,6 +4,8 @@
 /deps
 /*.ez
 
+.*sw*
+
 #contains top-secret DB authentication
 config/test.exs
 
