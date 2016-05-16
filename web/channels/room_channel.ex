@@ -1,0 +1,77 @@
+defmodule Zlack.RoomChannel do
+  use Phoenix.Channel
+
+  alias Zlack.{Repo, Room, User, UserRoom, MessageQueue}
+
+  def join("rooms:" <> room_id = channel_name, %{"user_id" => user_id}, socket) do
+    case socket.assigns.current_user.id do
+      user_id ->
+        user = socket.assigns.current_user
+        owned_rooms = Repo.all(Ecto.assoc(user, :owned_rooms))
+        owned_room = Enum.find(owned_rooms, fn(x) -> x.user_id end)
+        if (owned_room != nil) do
+          send(self, :after_join)
+          Zlack.MessageQueue.register_active_channel(channel_name)
+          {:ok, %{owner: true}, socket}
+        else
+          user_rooms = Repo.all(Ecto.assoc(user, :rooms))
+          user_room = Enum.find(user_rooms, fn(x) -> x.user_id end)
+          if (user_room != nil) do
+            send(self, :after_join)
+            Zlack.MessageQueue.register_active_channel(channel_name)
+            {:ok, %{owner: false}, socket}
+          else
+            {:error, {"Unavailable"}}
+          end
+          
+        end
+
+      _ ->
+        {:error, {"Unauthorized"}}
+    end
+  end
+
+  def handle_in("rooms:add_member",
+    %{
+      "room_id" => room_id,
+      "user_email" => user_email},
+    socket) do
+    user = Repo.get_by!(User, email: user_email)
+    room = Repo.get_by!(Room, id: room_id)
+    changeset = user
+      |> Ecto.build_assoc(:user_rooms)
+      |> UserRoom.changeset(%{room_id: room.id})
+    Repo.insert!(changeset)
+    MessageQueue.dispatch_mail(%{
+      :to_channel => "users:" <> Integer.to_string(user.id),
+      :event => "invitation",
+      :message => %{room_id: room_id, room_name: room.name}
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_in("rooms:send_message",
+    %{
+      "room_id" => room_id,
+      "message" => msg},
+    socket) do
+    MessageQueue.dispatch_mail(%{
+      :to_channel => "rooms:" <> Integer.to_string(room_id),
+      :event => "user sent message",
+      :message => %{:text => msg}
+    })
+    {:noreply, socket}
+  end
+
+  def handle_info(:after_join, socket) do
+    broadcast!(socket, "user joined", %{"user" => socket.assigns.current_user})
+    {:noreply, socket}
+  end
+
+  def terminate(msg, socket) do
+    broadcast!(socket, "user left", %{"user" => socket.assigns.current_user})
+    {:shutdown, :left}
+  end
+
+end
