@@ -1,7 +1,7 @@
 defmodule Zlack.UserControllerTest do
-  use ESpec
+  #use ESpec
 
-  alias Zlack.{UserHTTPClient}
+  #alias Zlack.{UserHTTPClient}
 
   @moduledoc """
     This module contains tests for the UserController module. The functions in UserActions should NOT be called directly. Those tests belong in Zlack.UserActionsTest. 

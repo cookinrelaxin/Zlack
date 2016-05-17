@@ -29,8 +29,9 @@ defmodule Zlack.User do
   def changeset(model, params \\ :empty) do
     model
     |> cast(params, @required_fields, @optional_fields)
-    |> validate_format(:email, ~r/@/)
-    |> validate_length(:password, min: 5)
+    #email validation from http://www.regular-expressions.info/email.html
+    |> validate_format(:email, ~r/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i)
+    |> validate_format(:password, ~r/\w{5,}\s\w{5,}\s\w{5,}\s\w{5,}/)
     |> validate_confirmation(:password, message: "Password does not match")
     |> unique_constraint(:email, message: "Email already taken")
     |> generate_encrypted_password

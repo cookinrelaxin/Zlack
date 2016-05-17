@@ -1,5 +1,7 @@
 defmodule Zlack.UserActions do
 
+  alias Zlack.{User, Repo}
+
   @moduledoc """
     This module defines the real shit: the actions that mutate the state of the application, specifically regarding users. Authentication should not be performed here.
   """
@@ -15,11 +17,14 @@ defmodule Zlack.UserActions do
     Create a user with the given parameters and insert into the DB.
   """
   def create(%{
-    "user" => %{
-      "todo" => todo
-    }
-  } = user_params) do
-    nil
+      :first_name => first_name,
+      :last_name => last_name,
+      :email => email,
+      :password => password
+  } = attributes) do
+    changeset = User.changeset(%User{}, attributes)
+    res = Repo.insert!(changeset)
+    {:ok, res}
   end
 
   @doc """
