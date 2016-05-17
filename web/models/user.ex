@@ -1,7 +1,7 @@
 defmodule Zlack.User do
   use Zlack.Web, :model
 
-  alias Zlack.{Room, UserRoom}
+  alias Zlack.{Room}
 
   @derive {Poison.Encoder, only: [:id, :first_name, :last_name, :email]}
 
@@ -12,9 +12,7 @@ defmodule Zlack.User do
     field :encrypted_password, :string
     field :password, :string, virtual: true
 
-    has_many :owned_rooms, Room
-    has_many :user_rooms, UserRoom
-    has_many :rooms, through: [:user_rooms, :room]
+    has_many :rooms, Room
 
     timestamps
   end
@@ -47,4 +45,3 @@ defmodule Zlack.User do
     end
   end
 end
-

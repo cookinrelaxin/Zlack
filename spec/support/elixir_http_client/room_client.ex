@@ -1,4 +1,6 @@
 defmodule Zlack.RoomClient do
+  @moduledoc """
+  """
 
   @url "localhost:4000/api/v1/rooms"
   @headers [{"accept", "application/json"},

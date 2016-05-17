@@ -10,6 +10,7 @@ defmodule Zlack.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      aliases: aliases,
+     preferred_cli_env: [espec: :test],
      deps: deps]
   end
 
@@ -51,6 +52,7 @@ defmodule Zlack.Mixfile do
       {:ex_machina, "~> 0.6.1"},
       {:exactor, "~> 2.2.0"},
       {:hound, "~> 0.8"},
+      {:espec, "~> 0.8.20", only: :test},
       {:mix_test_watch, "~> 0.2", only: :dev}
      ]
   end
