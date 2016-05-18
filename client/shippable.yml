@@ -1,0 +1,28 @@
+language: node_js
+
+node_js:
+  - "4"
+
+build:
+  ci:
+    - npm prune
+    - shippable_retry npm install --unsafe-perm
+    - npm test
+
+  post_ci:
+    - docker rmi gkubisa/elm-app-boilerplate:0.2.2 || true
+    - npm run release
+
+  cache: true
+  cache_dir_list:
+    - $SHIPPABLE_BUILD_DIR/node_modules
+    - $SHIPPABLE_BUILD_DIR/elm-stuff
+    - $SHIPPABLE_BUILD_DIR/.git
+
+integrations:
+  hub:
+    - integrationName: docker-hub
+      type: docker
+      branches:
+        only:
+          - master
