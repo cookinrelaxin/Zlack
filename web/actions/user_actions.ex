@@ -1,6 +1,8 @@
 defmodule Zlack.UserActions do
 
   alias Zlack.{User, Repo}
+  import Ecto.Query, only: [from: 2]
+  alias Ecto.Query
 
   @moduledoc """
     This module defines the real shit: the actions that mutate the state of the application, specifically regarding users. Authentication should not be performed here.
@@ -10,7 +12,7 @@ defmodule Zlack.UserActions do
     Take a given page number greater than or equal to zero and return at most 10 users per page from the DB.
   """
   def index(%{"page" => page}) do
-    nil
+    page = User |> Repo.paginate(page: page, page_size: 10)
   end
 
   @doc """
@@ -31,7 +33,14 @@ defmodule Zlack.UserActions do
     Retrieve a user from the database with the given id.
   """
   def show(%{"id" => id}) do
-    nil
+    Repo.get_by(User, %{:id => id})
+  end
+
+  @doc """
+    Retrieve a user from the database with the given email address.
+  """
+  def show(%{"email" => email}) do
+    Repo.get_by(User, %{:email => email})
   end
 
   @doc """

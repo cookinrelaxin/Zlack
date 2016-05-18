@@ -20,4 +20,3 @@ defmodule Zlack.SessionView do
     %{error: error}
   end
 end
-

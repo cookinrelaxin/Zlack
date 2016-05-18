@@ -32,7 +32,7 @@ defmodule Zlack.Mixfile do
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
+  defp elixirc_paths(:test), do: ["lib", "web", "spec/support"]
   defp elixirc_paths(_),     do: ["lib", "web"]
 
   # Specifies your project dependencies.
@@ -53,6 +53,7 @@ defmodule Zlack.Mixfile do
       {:exactor, "~> 2.2.0"},
       {:hound, "~> 0.8"},
       {:espec, "~> 0.8.20", only: :test},
+      {:scrivener, "~> 1.0"},
       {:mix_test_watch, "~> 0.2", only: :dev}
      ]
   end

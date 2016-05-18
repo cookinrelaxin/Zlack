@@ -8,6 +8,7 @@ defmodule Zlack.User do
   schema "users" do
     field :first_name, :string
     field :last_name, :string
+    field :username, :string
     field :email, :string
     field :encrypted_password, :string
     field :password, :string, virtual: true
@@ -17,8 +18,8 @@ defmodule Zlack.User do
     timestamps
   end
 
-  @required_fields ~w(first_name last_name email password)
-  @optional_fields ~w(encrypted_password)
+  @required_fields ~w(email password username)
+  @optional_fields ~w(first_name last_name encrypted_password)
 
   @doc """
   Creates a changeset based on the `model` and `params`.

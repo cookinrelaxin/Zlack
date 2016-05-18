@@ -27,4 +27,3 @@ defmodule Zlack.RoomView do
     message
   end
 end
-

@@ -23,4 +23,3 @@ defmodule Zlack.RegistrationView do
     message
   end
 end
-

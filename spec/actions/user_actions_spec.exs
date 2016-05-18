@@ -1,13 +1,12 @@
 defmodule Zlack.UserActionsSpec do
   use ESpec, async: false
 
-  alias Zlack.{UserActions, User, Repo}
+  alias Zlack.{UserActions, User, Repo, Factory}
 
   @moduledoc """
     This module contains tests for the UserActions module. The functions in UserActions should be called directly -- not over a network. For networked testing, see Zlack.UserControllerTest for HTTP and Zlack.UserChannelTest for WS.
     Tests should act directly with the database for verification.
   """
-
 
   context "UserActions" do
 
@@ -39,16 +38,75 @@ defmodule Zlack.UserActionsSpec do
 
       context "given a page number" do
 
-        context "given 0" do
+        context "given page = 1" do
 
-          it "returns at most ten users from that page in the database" do
+          it "returns 1 user from a database of 1 user" do
+            Factory.create(:user)
+            index_results = UserActions.index(%{"page" => 1})
 
-            #UserActions.index(0)
+            expect index_results.page_number |> to(eq 1)
+            expect index_results.page_size |> to(eq 10)
+            expect index_results.total_pages |> to(eq 1)
+            expect index_results.total_entries |> to(eq 1)
+
+            expect index_results.entries |> to(have_length 1)
+          end
+
+          it "returns 10 users from a database of 10 users" do
+            Factory.create_list(10,:user)
+
+            index_results = UserActions.index(%{"page" => 1})
+
+            expect index_results.page_number |> to(eq 1)
+            expect index_results.page_size |> to(eq 10)
+            expect index_results.total_pages |> to(eq 1)
+            expect index_results.total_entries |> to(eq 10)
+
+            expect index_results.entries |> to(have_length 10)
+          end
+
+          it "returns 10 users from a database of 15 users" do
+            Factory.create_list(15,:user)
+
+            index_results = UserActions.index(%{"page" => 1})
+
+            expect index_results.page_number |> to(eq 1)
+            expect index_results.page_size |> to(eq 10)
+            expect index_results.total_pages |> to(eq 2)
+            expect index_results.total_entries |> to(eq 15)
+
+            expect index_results.entries |> to(have_length 10)
 
           end
 
         end
 
+        context "given page = 2" do
+
+          it "returns 5 users from a database of 15 users" do
+              Factory.create_list(15,:user)
+
+              index_results = UserActions.index(%{"page" => 2})
+
+              expect index_results.page_number |> to(eq 2)
+              expect index_results.page_size |> to(eq 10)
+              expect index_results.total_pages |> to(eq 2)
+              expect index_results.total_entries |> to(eq 15)
+
+              expect index_results.entries |> to(have_length 5)
+
+          end
+
+        end
+
+      end
+
+      context "given user attributes" do
+          context "given a first name" do
+          end
+
+          context "given a last name" do
+          end
       end
 
     end
@@ -104,6 +162,38 @@ defmodule Zlack.UserActionsSpec do
     end
 
     describe ".show" do
+
+      context "given an email address" do
+
+        it "returns a user if there is a user with that email address" do
+          {:ok, _model} = UserActions.create(shared.valid_attributes)
+          email = shared.valid_attributes.email
+          model = Map.from_struct(UserActions.show(%{"email" => email}))
+          expect model |> to(have_key :id)
+        end
+
+        it "returns nil if there is no user with that email address" do
+          {:ok, _model} = UserActions.create(shared.valid_attributes)
+          email = shared.valid_attributes.email
+          expect UserActions.show(%{"email" => "btimmons@gmail.com"}) |> to(be_nil)
+        end
+      end
+
+      context "given an id" do
+
+        it "returns a user if there is a user with that id" do
+          {:ok, created_model} = UserActions.create(shared.valid_attributes)
+          id = created_model.id
+          model = Map.from_struct(UserActions.show(%{"id" => id}))
+          expect model |> to(have_key :email)
+        end
+
+        it "returns nil if there is no user with that id" do
+          {:ok, created_model} = UserActions.create(shared.valid_attributes)
+          id = created_model.id
+          expect UserActions.show(%{"id" => 412341234}) |> to(be_nil)
+        end
+      end
 
     end
 
