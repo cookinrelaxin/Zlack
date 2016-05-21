@@ -6,9 +6,9 @@ defmodule Zlack.Factory do
     %Zlack.User{
       first_name: "Bobby",
       last_name: "Timmons",
+      username: "btimmons",
       password: "tatum waller johnson smith",
       encrypted_password: "aasdf07896asdyfuhlasdjkl4",
-      email: sequence(:email, &"email-#{&1}@example.com"),
     }
   end
 

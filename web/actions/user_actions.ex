@@ -19,9 +19,7 @@ defmodule Zlack.UserActions do
     Create a user with the given parameters and insert into the DB.
   """
   def create(%{
-      :first_name => first_name,
-      :last_name => last_name,
-      :email => email,
+      :username => username,
       :password => password
   } = attributes) do
     changeset = User.changeset(%User{}, attributes)
@@ -30,17 +28,56 @@ defmodule Zlack.UserActions do
   end
 
   @doc """
-    Retrieve a user from the database with the given id.
+    Create a user with a randomly generated username.
+  """
+  def create(:guest) do
+    username = random_username
+    case show(%{"username" => username}) do
+      nil -> create(%{username: username, password: "correct horse battery staple"})
+      _ -> create(:guest)
+    end
+  end
+
+  defp random_adverb do
+    {:ok, query} = Ecto.Adapters.SQL.query(Repo, "select * from adverbs limit 1 offset floor(random() * (select count(*) from adverbs))", [])
+    query.rows
+    |> hd
+    |> tl
+    |> hd
+  end
+
+  defp random_adjective do
+    {:ok, query} = Ecto.Adapters.SQL.query(Repo, "select * from adjectives limit 1 offset floor(random() * (select count(*) from adjectives))", [])
+    query.rows
+    |> hd
+    |> tl
+    |> hd
+  end
+
+  defp random_noun do
+    {:ok, query} = Ecto.Adapters.SQL.query(Repo, "select * from nouns limit 1 offset floor(random() * (select count(*) from nouns))", [])
+    query.rows
+    |> hd
+    |> tl
+    |> hd
+  end
+
+  defp random_username do
+    random_adverb <> "." <> random_adjective <> "." <> random_noun
+  end
+
+  @doc """
+    Retrieve a user from the database with the given username.
   """
   def show(%{"id" => id}) do
     Repo.get_by(User, %{:id => id})
   end
 
   @doc """
-    Retrieve a user from the database with the given email address.
+    Retrieve a user from the database with the given username address.
   """
-  def show(%{"email" => email}) do
-    Repo.get_by(User, %{:email => email})
+  def show(%{"username" => username}) do
+    Repo.get_by(User, %{:username => username})
   end
 
   @doc """

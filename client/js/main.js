@@ -1,4 +1,5 @@
-import './semantic-ui/semantic-ui'
+//import './semantic-ui/semantic-ui'
+import '../node_modules/semantic-ui-less/semantic.less'
 import Elm from '../elm/Main'
 
-Elm.fullscreen(Elm.Main, { swap: false })
+Elm.Main.fullscreen();

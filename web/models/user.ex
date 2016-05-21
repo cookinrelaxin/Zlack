@@ -9,7 +9,6 @@ defmodule Zlack.User do
     field :first_name, :string
     field :last_name, :string
     field :username, :string
-    field :email, :string
     field :encrypted_password, :string
     field :password, :string, virtual: true
 
@@ -18,7 +17,7 @@ defmodule Zlack.User do
     timestamps
   end
 
-  @required_fields ~w(email password username)
+  @required_fields ~w(password username)
   @optional_fields ~w(first_name last_name encrypted_password)
 
   @doc """
@@ -30,11 +29,10 @@ defmodule Zlack.User do
   def changeset(model, params \\ :empty) do
     model
     |> cast(params, @required_fields, @optional_fields)
-    #email validation from http://www.regular-expressions.info/email.html
-    |> validate_format(:email, ~r/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i)
     |> validate_format(:password, ~r/\w{5,}\s\w{5,}\s\w{5,}\s\w{5,}/)
     |> validate_confirmation(:password, message: "Password does not match")
-    |> unique_constraint(:email, message: "Email already taken")
+    |> validate_format(:username, ~r/.+/)
+    |> unique_constraint(:username, message: "Email already taken")
     |> generate_encrypted_password
   end
 

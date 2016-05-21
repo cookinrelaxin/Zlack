@@ -7,7 +7,7 @@ defmodule Zlack.UserController do
 
   alias Zlack.{UserActions}
 
-  plug Guardian.Plug.EnsureAuthenticated, handler: Zlack.SessionController
+  #plug Guardian.Plug.EnsureAuthenticated, handler: Zlack.SessionController
 
   ###
   ### users
@@ -21,10 +21,20 @@ defmodule Zlack.UserController do
   end
 
   @doc """
+  Handle HTTP POST request for /api/v1/users/?guest=true
+  """
+  def create(conn, %{"guest" => "true"} = params) do
+    #IO.puts "
+    #username = UserActions.create(:guest)
+    {:ok, user} = UserActions.create(:guest)
+    render conn, "guest.json", username: user.username
+  end
+
+  @doc """
   Handle HTTP POST request for /api/v1/users
   """
-  def create(conn, _params) do
-    UserActions.create
+  def create(conn, %{}) do
+    render conn, "test.json"
   end
 
   @doc """

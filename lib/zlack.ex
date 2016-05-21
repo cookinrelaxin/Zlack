@@ -11,7 +11,6 @@ defmodule Zlack do
       supervisor(Zlack.Endpoint, []),
       # Start the Ecto repository
       supervisor(Zlack.Repo, []),
-      #worker(Zlack.MessageQueue, [%{"active_channels" => %{}, "missives" => []}]),
       worker(Zlack.MessageQueue, []),
     ]
 

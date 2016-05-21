@@ -54,6 +54,7 @@ defmodule Zlack.Mixfile do
       {:hound, "~> 0.8"},
       {:espec, "~> 0.8.20", only: :test},
       {:scrivener, "~> 1.0"},
+      {:cors_plug, "~> 1.1"},
       {:mix_test_watch, "~> 0.2", only: :dev}
      ]
   end

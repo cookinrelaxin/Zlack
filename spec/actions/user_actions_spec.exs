@@ -16,14 +16,14 @@ defmodule Zlack.UserActionsSpec do
         %{
           :first_name => "timothy",
           :last_name => "jones",
-          :email => "tjones@gmail.com",
+          :username => "tjones",
           :password => "pigment watch mouse again",
         },
        invalid_attributes:
         %{
           :first_name => "timothy",
           :last_name => "jones",
-          :email => "tjones@gmail.com",
+          :username => "tjones",
           :password => "password",
         }
    }
@@ -31,7 +31,7 @@ defmodule Zlack.UserActionsSpec do
     Repo.delete_all(User)
 
     example "user with valid attributes does not exist" do
-      expect Repo.get_by(User, %{:email => shared.valid_attributes.email}) |> to(be_nil)
+      expect Repo.get_by(User, %{:username => shared.valid_attributes.username}) |> to(be_nil)
     end
 
     describe ".index" do
@@ -116,29 +116,15 @@ defmodule Zlack.UserActionsSpec do
       context "given valid user parameters" do
         it "inserts a new user into the database" do
           {:ok, _model} = UserActions.create(shared.valid_attributes)
-          expect Repo.get_by(User, %{:email => shared.valid_attributes.email}) |> to_not(be_nil)
+          expect Repo.get_by(User, %{:username => shared.valid_attributes.username}) |> to_not(be_nil)
         end
 
         let :model, do: Map.from_struct(elem(UserActions.create(shared.valid_attributes), 1))
-        it "returns the user's attributes, including their email" do
+        it "returns the user's attributes, including their username" do
           attributes = shared.valid_attributes
-          email = attributes.email
-          expect model |> to(have_key :email)
-          expect model |> to(have_value email)
-        end
-
-        it "returns the user's attributes, including their first name" do
-          attributes = shared.valid_attributes
-          first_name = attributes.first_name
-          expect model |> to(have_key :first_name)
-          expect model |> to(have_value first_name)
-        end
-
-        it "returns the user's attributes, including their last name" do
-          attributes = shared.valid_attributes
-          last_name = attributes.last_name
-          expect model |> to(have_key :last_name)
-          expect model |> to(have_value last_name)
+          username = attributes.username
+          expect model |> to(have_key :username)
+          expect model |> to(have_value username)
         end
 
         it "returns the user's attributes, including their password" do
@@ -159,23 +145,44 @@ defmodule Zlack.UserActionsSpec do
 
       end
 
+      context "given :guest" do
+
+        let :model, do: Map.from_struct(elem(UserActions.create(:guest), 1))
+        it "creates a user with a randomly generated username" do
+          expect model |> to(have_key :username)
+          expect model.username |> to(be_valid_string)
+          IO.puts model.username
+
+        end
+
+      end
+
+    end
+
+    xit "temporary users expire in 3 days and are deleted from the database" do
+    end
+
+    xit "temporary users are given a jwt for a session to persist in the client" do
+    end
+
+    xit "temporary users may become real users if they create a password, change their username, and create 3 private questions and answers" do
     end
 
     describe ".show" do
 
-      context "given an email address" do
+      context "given a username" do
 
-        it "returns a user if there is a user with that email address" do
+        it "returns a user if there is a user with that username" do
           {:ok, _model} = UserActions.create(shared.valid_attributes)
-          email = shared.valid_attributes.email
-          model = Map.from_struct(UserActions.show(%{"email" => email}))
+          username = shared.valid_attributes.username
+          model = Map.from_struct(UserActions.show(%{"username" => username}))
           expect model |> to(have_key :id)
         end
 
-        it "returns nil if there is no user with that email address" do
+        it "returns nil if there is no user with that username" do
           {:ok, _model} = UserActions.create(shared.valid_attributes)
-          email = shared.valid_attributes.email
-          expect UserActions.show(%{"email" => "btimmons@gmail.com"}) |> to(be_nil)
+          username = shared.valid_attributes.username
+          expect UserActions.show(%{"username" => "buku"}) |> to(be_nil)
         end
       end
 
@@ -185,7 +192,7 @@ defmodule Zlack.UserActionsSpec do
           {:ok, created_model} = UserActions.create(shared.valid_attributes)
           id = created_model.id
           model = Map.from_struct(UserActions.show(%{"id" => id}))
-          expect model |> to(have_key :email)
+          expect model |> to(have_key :username)
         end
 
         it "returns nil if there is no user with that id" do

@@ -35,5 +35,6 @@ defmodule Zlack.Endpoint do
     key: "_zlack_key",
     signing_salt: "+er+kDzX"
 
+  plug CORSPlug
   plug Zlack.Router
 end
