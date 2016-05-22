@@ -26,12 +26,12 @@ function zLACK_Client() {
 
         for (var i=0; i < matches.length; i++){
             var match = matches[i];
+            //console.log("match: ", match);
             if (patterns_equal(pattern, match.pattern)) {
+                matches.splice(i, 1);
                 match.callback(message);
+                break;
             }
-
-            matches.splice(i, 1);
-            break;
         }
 
     };
