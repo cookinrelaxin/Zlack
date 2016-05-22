@@ -3,649 +3,588 @@ var vows = require('vows');
 var assert = require('assert');
 ///
 /// ws stuff
-var WebSocket = require('ws')
-var url = 'ws://localhost:4000/socket/websocket'
+//var WebSocket = require('ws')
+//var url = 'ws://localhost:4000/socket/websocket'
 ///
-var client = require('../index.js')
+var Client = require('../index.js')
 vows.describe('Zlack NodeJS client').addBatch({
-    'When I join the test topic': {
-        'with event "phx_join", no payload, and a null ref': {
-            topic: JSON.stringify({
-                topic: "test",
-                event: "phx_join",
-                payload: {},
-                ref: null
-            }),
-            'I receive a response with status "ok"': function (message) {
-                var ws = new WebSocket(url)
-                ws.on('open', function open() {
-                    ws.send(message);
-                });
-
-                ws.onmessage = function(msg) {
-                    const data = JSON.parse(msg.data)
-                    assert.equal(data.payload.status, "ok")
-                    ws.close()
-                }
-            }
-        }
-    },
     'When I connect to the websocket endpoint' : {
         "and I join the guest channel" : {
             'I receive a response with status "ok"': function () {
-                var ws = new WebSocket(url)
-                ws.on('open', function open() {
-                    client.join_channel("guest", {}, ws);
+                const client = new Client();
+                client.onConnect(function () {
+                    client.join_channel({channel_name: "guest", payload: {}});
                 });
 
-                ws.onmessage = function(msg) {
-                    const data = JSON.parse(msg.data)
-                    assert.equal(data.payload.status, "ok")
-                    ws.close()
-                }
+                client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                    assert.equal(message.payload.status, "ok");
+                    client.disconnect();
+                });
             },
             'I receive a JWT' : function (out_message) {
-                var ws = new WebSocket(url)
-                ws.on('open', function open() {
-                    client.join_channel("guest", {}, ws);
+                const client = new Client();
+                client.onConnect(function () {
+                    client.join_channel({channel_name: "guest", payload: {}});
                 });
 
-                ws.onmessage = function(in_message) {
-                    const data = JSON.parse(in_message.data);
-                    assert.include(data.payload.response, 'jwt');
-                    ws.close()
-                }
+                client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                    assert.include(message.payload.response, 'jwt');
+                    client.disconnect();
+                });
             },
             'and a guest username' : function (out_message) {
-                var ws = new WebSocket(url)
-                ws.on('open', function open() {
-                    client.join_channel("guest", {}, ws);
+                const client = new Client();
+                client.onConnect(function () {
+                    client.join_channel({channel_name: "guest", payload: {}});
                 });
 
-                ws.onmessage = function(in_message) {
-                    const data = JSON.parse(in_message.data);
-                    assert.include(data.payload.response, 'username')
-                    ws.close()
-                }
+                client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                    assert.include(message.payload.response, 'username');
+                    client.disconnect();
+                });
             },
             'and a user ID' : function (out_message) {
-                var ws = new WebSocket(url)
-                ws.on('open', function open() {
-                    client.join_channel("guest", {}, ws);
+                const client = new Client();
+                client.onConnect(function () {
+                    client.join_channel({channel_name: "guest", payload: {}});
                 });
 
-                ws.onmessage = function(in_message) {
-                    const data = JSON.parse(in_message.data);
-                    assert.include(data.payload.response, 'id')
-                    ws.close()
-                }
+                client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                    assert.include(message.payload.response, 'id');
+                    client.disconnect();
+                });
             },
-            // 'and I send a message with event create_permanent_user': {
-            //     'and the payload contains a new username and 3 secret questions and answers': {
-            //         topic: JSON.stringify({
-            //             topic: "guest",
-            //             event: "phx_join",
-            //             payload: {},
-            //             ref: null
-            //         }),
-            //         'I receive a response with status "ok"' : function (join_message) {
-            //             var ws = new WebSocket(url)
-            //             ws.on('open', function open() {
-            //                 ws.send(join_message);
-            //             });
-
-            //             ws.onmessage = function(in_message) {
-            //                 const data = JSON.parse(in_message.data);
-            //                 console.log("data: ", data);
-
-            //                 switch (data.event) {
-            //                     case "phx_reply": {
-            //                         jwt = data.payload.response.jwt;
-            //                         username = data.payload.response.username;
-
-            //                         create_permanent_user_message = JSON.stringify({
-            //                                                 topic: "guest",
-            //                                                 event: "create_permanent_user",
-            //                                                 payload: {
-            //                                                     jwt: jwt,
-            //                                                     old_username: username,
-            //                                                     new_username: "dGillespie",
-            //                                                     secret_question_1: "What was the name of my first dog?",
-            //                                                     secret_answer_1: "Charlie",
-            //                                                     secret_question_2: "What was the name of the street of my first home that I can remember?",
-            //                                                     secret_answer_2: "knotty oak",
-            //                                                     secret_question_3: "Who is my dad's favorite musician?",
-            //                                                     secret_answer_3: "Bruce Springsteen"
-            //                                                 },
-            //                                                 ref: null
-            //                         });
-
-            //                         ws.send(create_permanent_user_message);
-            //                         break;
-            //                     }
-            //                     case "create_permanent_user": {
-            //                         //assert.isTrue(true)
-
-
-            //                         ws.close()
-            //                         break;
-            //                     }
-
-            //                 }
-
-            //             }
-            //         },
-            //         'and I receive receive my private password' : function (out_message) {
-            //             flunk()
-            //         }
-            //     }
-
-            // }
-            // 'and a guest account expiration date' : function (out_message) {
-            //     var ws = new WebSocket(url)
-            //     ws.on('open', function open() {
-            //         ws.send(out_message);
-            //     });
-
-            //     ws.onmessage = function(in_message) {
-            //         const data = JSON.parse(in_message.data);
-            //         assert.include(data.payload.response, 'expiration_date')
-            //         ws.close()
-            //     }
-            // },
-
         },
         "and I have a valid JWT, user ID, and username" : {
             "I can join my private user channel and receive a response with status 'ok'" : function () {
-                var ws = new WebSocket(url);
-                ws.on('open', function open() {
-                    client.join_channel("guest", {}, ws)
+                const client = new Client();
+                client.onConnect(function () {
+                    client.join_channel({channel_name: "guest", payload: {}});
                 });
 
-                ws.onmessage = function(in_message) {
-                    const data = JSON.parse(in_message.data);
-                    if (data.topic === 'guest') {
-                        const id = data.payload.response.id;
-                        const jwt = data.payload.response.jwt;
-                        const username = data.payload.response.username;
-                        client.join_user_channel(id, jwt, username, ws);
-                    }
-                    else {
-                        assert.equal(data.payload.status, "ok")
-                        ws.close()
-                    }
+                client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                    client.jwt = message.payload.response.jwt;
+                    client.user_id = message.payload.response.id;
+                    client.username = message.payload.response.username;
 
-                }
+                    client.onMessage({topic: "users:"+client.user_id, event: "phx_reply"}, function (join_user_channel_message) {
+                        assert.equal(join_user_channel_message.payload.status, 'ok');
+                        client.disconnect();
+                    });
+                    
+                    client.join_channel({
+                        channel_name: "users:"+client.user_id,
+                        payload: {jwt: client.jwt, username: client.username}
+                    });
+                    
+                });
+
             }
         },
         "and I join my user channel" : {
             "and send a message with event 'create_room'" : {
                 'and the payload contains "is_publicly_searchable": false' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: false,
                                     permissions: "must_be_invited"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload contains "is_publicly_searchable": true' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
                                     permissions: "must_be_invited"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload contains "permissions": "may_request_read_write_subscription"' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
                                     permissions: "may_request_read_write_subscription"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload contains "permissions": "may_request_read_subscription"' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
                                     permissions: "may_request_read_subscription"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload contains "permissions": "auto_grant_read_write_subscription"' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
-                                    permissions: "auto_grant_read_subscription"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                    permissions: "auto_grant_read_write_subscription"
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload contains "permissions": "auto_grant_read_subscription"' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
                                     permissions: "auto_grant_read_subscription"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload contains "permissions": "must_be_invited"' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
                                     permissions: "must_be_invited"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload contains "room_title": "insert any room title here"' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "insert any room title here",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
-                                    permissions: "may_request_read_write_subscription"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                    permissions: "may_request_read_subscription"
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload contains "room_subtitle": "insert any room subtitle here"' : {
                     'I receive a response with status "ok"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "insert any room subtitle here",
                                     is_publicly_searchable: true,
-                                    permissions: "may_request_read_write_subscription"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "ok")
-                                ws.close()
-                            }
+                                    permissions: "may_request_read_subscription"
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload has a different "is_publicly_searchable" field' : {
                     'I receive a response with status "error: invalid is_publicly_searchable"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: "maybe",
-                                    permissions: "may_request_read_write_subscription"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "error: invalid is_publicly_searchable")
-                                ws.close()
-                            }
+                                    permissions: "may_request_read_subscription"
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'error: invalid is_publicly_searchable');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the payload has a different "permissions" field' : {
                     'I receive a response with status "error: invalid permissions"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
-                                    permissions: "anybody can do anything they want :)"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "error: invalid permissions")
-                                ws.close()
-                            }
+                                    permissions: "do whatever"
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'error: invalid permissions');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the "room_title" field in the payload is an empty string' : {
                     'I receive a response with status "error: room_title must not be empty""' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "",
                                     room_subtitle: "just a hangout place",
                                     is_publicly_searchable: true,
-                                    permissions: "anybody can do anything they want :)"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "error: room_title must not be empty")
-                                ws.close()
-                            }
+                                    permissions: "may_request_read_subscription"
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'error: room_title must not be empty');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 },
                 'and the "room_subtitle" field in the payload is an empty string' : {
                     'I receive a response with status "error: room_subtitle must not be empty"' : function () {
-                        var ws = new WebSocket(url);
-                        ws.on('open', function open() {
-                            client.join_channel("guest", {}, ws)
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
                         });
 
-                        var id = ""
-                        var jwt = ""
-                        var username = ""
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                        ws.onmessage = function(in_message) {
-                            const data = JSON.parse(in_message.data);
-                            if (data.topic === 'guest') {
-                                id = data.payload.response.id;
-                                jwt = data.payload.response.jwt;
-                                username = data.payload.response.username;
-                                client.join_user_channel(id, jwt, username, ws);
-                            }
-                            else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
                                 client.create_room({
-                                    user_id: id,
                                     room_title: "BanefulDomain",
                                     room_subtitle: "",
                                     is_publicly_searchable: true,
-                                    permissions: "may_request_read_write_subscription"
-                                }, ws);
-                            }
-                            else {
-                                assert.equal(data.payload.status, "error: room_subtitle must not be empty")
-                                ws.close()
-                            }
+                                    permissions: "may_request_read_subscription"
+                                });
+                            });
 
-                        }
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.equal(create_room_message.payload.status, 'error: room_subtitle must not be empty');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
+                    }
+                },
+                'and receive a status "ok"' : {
+                    'I also receive a room id' : function () {
+                        const client = new Client();
+                        client.onConnect(function () {
+                            client.join_channel({channel_name: "guest", payload: {}});
+                        });
+
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
+
+                            const user_channel = "users:"+client.user_id;
+
+                            client.onMessage({topic: user_channel, event: "phx_reply"}, function (join_user_channel_message) {
+                                client.create_room({
+                                    room_title: "BanefulDomain",
+                                    room_subtitle: "just a hangout place",
+                                    is_publicly_searchable: true,
+                                    permissions: "may_request_read_subscription"
+                                });
+                            });
+
+                            client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                                assert.include(create_room_message.payload.response, "room_id")
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: user_channel,
+                                payload: {jwt: client.jwt, username: client.username}
+                            });
+                            
+                        });
                     }
                 }
             },
@@ -663,6 +602,47 @@ vows.describe('Zlack NodeJS client').addBatch({
             }
         },
         "and I join a room channel" : {
+            'and the payload contains "room_id": <some room id>, ' : {
+                // 'I receive a response with "status": "ok"' : function () {
+                //     var ws = new WebSocket(url);
+                //     ws.on('open', function open() {
+                //         client.join_channel("guest", {}, ws)
+                //     });
+
+                //     var id = ""
+                //     var jwt = ""
+                //     var username = ""
+
+                //     ws.onmessage = function(in_message) {
+                //         const data = JSON.parse(in_message.data);
+                //         if (data.topic === 'guest') {
+                //             id = data.payload.response.id;
+                //             jwt = data.payload.response.jwt;
+                //             username = data.payload.response.username;
+                //             client.join_user_channel(id, jwt, username, ws);
+                //         }
+                //         else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
+                //             client.create_room({
+                //                 user_id: id,
+                //                 room_title: "BanefulDomain",
+                //                 room_subtitle: "insert any room subtitle here",
+                //                 is_publicly_searchable: true,
+                //                 permissions: "may_request_read_write_subscription"
+                //             }, ws);
+                //         }
+                //         else if ((data.topic === ('users:'+id)) && (data.event === 'create_room')) { 
+                //             // assert.equal(data.payload.status, "ok")
+                //             // ws.close()
+                //         }
+
+                //         else if ((data.topic === ('rooms:'+room_id)) && (data.event === 'phx_reply')) { 
+                //             assert.equal(data.payload.status, "ok")
+                //             ws.close()
+                //         }
+
+                //     }
+                // }
+            },
             "other users in the room channel receive a notification that I joined" : function () {
                 flunk()
             },

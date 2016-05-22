@@ -42,7 +42,7 @@ defmodule Zlack.UserChannel do
           "auto_grant_read_subscription",
           "must_be_invited"]) do
           true ->
-            push socket, event, %{status: :ok}
+            push socket, event, %{status: :ok, response: %{room_id: 452}}
             {:noreply, socket}
           false ->
             push socket, event, %{status: "error: invalid permissions"}
