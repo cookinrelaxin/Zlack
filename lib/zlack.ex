@@ -12,6 +12,7 @@ defmodule Zlack do
       # Start the Ecto repository
       supervisor(Zlack.Repo, []),
       worker(Zlack.MessageQueue, []),
+      worker(Zlack.Cron, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

@@ -3,21 +3,55 @@ defmodule Zlack.UserChannel do
 
   alias Zlack.{MessageQueue}
 
-  def join("users:" <> user_id = channel_name, _params, socket) do
-    user = socket.assigns.current_user
-    if String.to_integer(user_id) == user.id do
-         send(self, :after_join)
-        {:ok, assign(socket, :channel_name, channel_name)}
-    else 
-        {:error, %{reason: "Invalid user id"}}
-    end
+  def join("users:" <> _user_id = _channel_name, %{"jwt" => _jwt}, socket) do
+    {:ok, socket}
   end
 
-  intercept ["invitation"]
-
-  def handle_out("invitation", msg, socket) do
-    push socket, "invitation", msg
+  def handle_in("create_room" = event, %{
+    "room_title" => "",
+    "room_subtitle" => room_subtitle,
+    "is_publicly_searchable" => is_publicly_searchable,
+    "permissions" => permissions
+  } = params, socket) do
+    push socket, event, %{status: "error: room_title must not be empty"}
     {:noreply, socket}
+  end
+
+  def handle_in("create_room" = event, %{
+    "room_title" => room_title,
+    "room_subtitle" => "",
+    "is_publicly_searchable" => is_publicly_searchable,
+    "permissions" => permissions
+  } = params, socket) do
+    push socket, event, %{status: "error: room_subtitle must not be empty"}
+    {:noreply, socket}
+  end
+
+  def handle_in("create_room" = event, %{
+    "room_title" => room_title,
+    "room_subtitle" => room_subtitle,
+    "is_publicly_searchable" => is_publicly_searchable,
+    "permissions" => permissions
+  } = params, socket) do
+    case (is_publicly_searchable in [true, false]) do
+      true ->
+        case (permissions in [
+          "may_request_read_write_subscription",
+          "may_request_read_subscription",
+          "auto_grant_read_write_subscription",
+          "auto_grant_read_subscription",
+          "must_be_invited"]) do
+          true ->
+            push socket, event, %{status: :ok}
+            {:noreply, socket}
+          false ->
+            push socket, event, %{status: "error: invalid permissions"}
+            {:noreply, socket}
+          end
+      false ->
+        push socket, event, %{status: "error: invalid is_publicly_searchable"}
+        {:noreply, socket}
+    end
   end
 
   def handle_info(:after_join, socket) do

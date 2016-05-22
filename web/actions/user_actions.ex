@@ -19,8 +19,9 @@ defmodule Zlack.UserActions do
     Create a user with the given parameters and insert into the DB.
   """
   def create(%{
-      :username => username,
-      :password => password
+      :username => _username,
+      :password => _password,
+      :is_guest => _is_guest,
   } = attributes) do
     changeset = User.changeset(%User{}, attributes)
     res = Repo.insert!(changeset)
@@ -33,7 +34,7 @@ defmodule Zlack.UserActions do
   def create(:guest) do
     username = random_username
     case show(%{"username" => username}) do
-      nil -> create(%{username: username, password: "correct horse battery staple"})
+      nil -> create(%{username: username, password: "correct horse battery staple", is_guest: true})
       _ -> create(:guest)
     end
   end
@@ -78,6 +79,20 @@ defmodule Zlack.UserActions do
   """
   def show(%{"username" => username}) do
     Repo.get_by(User, %{:username => username})
+  end
+
+  def update(%{
+    "jwt" => jwt,
+    "old_username" => old_username,
+    "new_username" => new_username,
+    "secret_question_1" => secret_question_1,
+    "secret_question_2" => secret_question_2,
+    "secret_question_3" => secret_question_3,
+    "secret_answer_1" => secret_answer_1,
+    "secret_answer_2" => secret_answer_2,
+    "secret_answer_3" => secret_answer_3
+  } = params) do
+    
   end
 
   @doc """

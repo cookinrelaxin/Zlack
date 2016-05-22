@@ -1,0 +1,137 @@
+var _cookinrelaxin$zlack$Main$fetchTask = A3(
+	_evancz$elm_http$Http$post,
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'username', _elm_lang$core$Json_Decode$string),
+	'http://localhost:4000/api/v1/users?guest=true',
+	_evancz$elm_http$Http$empty);
+var _cookinrelaxin$zlack$Main$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$h4,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Your temporary username is ',
+							A2(_elm_lang$core$Basics_ops['++'], model.username, '. It will expire in <INSERT EXPIRATION DATE HERE>')))
+					])),
+				A2(
+				_elm_lang$html$Html$h4,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('My Channels')
+					])),
+				A2(
+				_elm_lang$html$Html$ul,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('subscribed-channels')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$li,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('<SOME CHANNEL>')
+							])),
+						A2(
+						_elm_lang$html$Html$li,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('<ANOTHER CHANNEL>')
+							])),
+						A2(
+						_elm_lang$html$Html$li,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('<YET ANOTHER CHANNEL>')
+							]))
+					])),
+				A2(
+				_elm_lang$html$Html$button,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('ui loading button')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Create a new channel')
+					])),
+				A2(
+				_elm_lang$html$Html$h4,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Find new channels or users')
+					])),
+				A2(
+				_elm_lang$html$Html$input,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$type$('text'),
+						_elm_lang$html$Html_Attributes$placeholder('e.g. Punk Rock')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[]))
+			]));
+};
+var _cookinrelaxin$zlack$Main$Model = function (a) {
+	return {username: a};
+};
+var _cookinrelaxin$zlack$Main$FetchError = function (a) {
+	return {ctor: 'FetchError', _0: a};
+};
+var _cookinrelaxin$zlack$Main$FetchSuccess = function (a) {
+	return {ctor: 'FetchSuccess', _0: a};
+};
+var _cookinrelaxin$zlack$Main$fetchCmd = A3(_elm_lang$core$Task$perform, _cookinrelaxin$zlack$Main$FetchError, _cookinrelaxin$zlack$Main$FetchSuccess, _cookinrelaxin$zlack$Main$fetchTask);
+var _cookinrelaxin$zlack$Main$init = {
+	ctor: '_Tuple2',
+	_0: {username: ''},
+	_1: _cookinrelaxin$zlack$Main$fetchCmd
+};
+var _cookinrelaxin$zlack$Main$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'Fetch':
+				return {ctor: '_Tuple2', _0: model, _1: _cookinrelaxin$zlack$Main$fetchCmd};
+			case 'FetchSuccess':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{username: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _cookinrelaxin$zlack$Main$main = {
+	main: _elm_lang$html$Html_App$program(
+		{
+			init: _cookinrelaxin$zlack$Main$init,
+			view: _cookinrelaxin$zlack$Main$view,
+			update: _cookinrelaxin$zlack$Main$update,
+			subscriptions: _elm_lang$core$Basics$always(_elm_lang$core$Platform_Sub$none)
+		})
+};
+var _cookinrelaxin$zlack$Main$Fetch = {ctor: 'Fetch'};

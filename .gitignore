@@ -5,15 +5,7 @@
 /*.ez
 
 #static client artifacts
-/client/node_modules/
-/client/elm-stuff/
-/client/node_modules/
-/client/dist/
-/client/styles/definitions/
-/client/styles/themes/
-/client/styles/theme.less
-/client/styles/semantic.less
-/client/coverage/
+/clients/node_client/node_modules/
 
 #vim swap files
 .*sw*

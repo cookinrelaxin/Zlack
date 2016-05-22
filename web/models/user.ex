@@ -9,6 +9,7 @@ defmodule Zlack.User do
     field :first_name, :string
     field :last_name, :string
     field :username, :string
+    field :is_guest, :boolean
     field :encrypted_password, :string
     field :password, :string, virtual: true
 
@@ -17,7 +18,7 @@ defmodule Zlack.User do
     timestamps
   end
 
-  @required_fields ~w(password username)
+  @required_fields ~w(password username is_guest)
   @optional_fields ~w(first_name last_name encrypted_password)
 
   @doc """
