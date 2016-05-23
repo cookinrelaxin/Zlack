@@ -1,11 +1,5 @@
-/// test stuff
 var vows = require('vows');
 var assert = require('assert');
-///
-/// ws stuff
-//var WebSocket = require('ws')
-//var url = 'ws://localhost:4000/socket/websocket'
-///
 var Client = require('../index.js')
 vows.describe('Zlack NodeJS client').addBatch({
     'When I connect to the websocket endpoint' : {
@@ -43,27 +37,100 @@ vows.describe('Zlack NodeJS client').addBatch({
                 });
             },
         },
-        "and I have a valid JWT, user ID, and username" : {
-            "I can join my private user channel and receive a response with status 'ok'" : function () {
-                const client = connect_and_create_guest();
+        "and I attempt to join my private user channel" : {
+            'and the payload I send includes a jwt' : {
+                "and the jwt is valid" : {
+                    "then I join the channel and receive a response with status 'ok'" : function () {
+                        const client = connect_and_create_guest();
 
-                client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
-                    client.jwt = message.payload.response.jwt;
-                    client.user_id = message.payload.response.id;
-                    client.username = message.payload.response.username;
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
 
-                    client.onMessage({topic: "users:"+client.user_id, event: "phx_reply"}, function (join_user_channel_message) {
-                        assert.equal(join_user_channel_message.payload.status, 'ok');
-                        client.disconnect();
-                    });
-                    
-                    client.join_channel({
-                        channel_name: "users:"+client.user_id,
-                        payload: {jwt: client.jwt, username: client.username}
-                    });
-                    
-                });
+                            client.onMessage({topic: "users:"+client.user_id, event: "phx_reply"}, function (join_user_channel_message) {
+                                assert.equal(join_user_channel_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: "users:"+client.user_id,
+                                payload: {jwt: client.jwt}
+                            });
+                            
+                        });
+                    }
+                },
+                "and the jwt is invalid" : {
+                    "then I do not join the channel and I receive a response with status 'error' and reason 'invalid jwt'" : function () {
+                        const client = connect_and_create_guest();
 
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = "akjsdfhasdf79asdrhipuw345;awejasdf"
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
+
+                            client.onMessage({topic: "users:"+client.user_id, event: "phx_reply"}, function (join_user_channel_message) {
+                                assert.equal(join_user_channel_message.payload.status, 'error');
+                                assert.equal(join_user_channel_message.payload.response.reason, 'invalid jwt');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: "users:"+client.user_id,
+                                payload: {jwt: client.jwt}
+                            });
+                            
+                        });
+                    }
+                }
+            },
+            'and the payload I send includes a username and password' : {
+                'and the username and password do not match' : {
+                    'then I do not join the channel and I receive a response with status "error" and reason "invalid username and password combination"' : function () {
+                        const client = connect_and_create_guest();
+
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
+
+                            client.onMessage({topic: "users:"+client.user_id, event: "phx_reply"}, function (join_user_channel_message) {
+                                assert.equal(join_user_channel_message.payload.status, 'error');
+                                assert.equal(join_user_channel_message.payload.response.reason, 'invalid username and password combination');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: "users:"+client.user_id,
+                                payload: {username: client.username, password: "boogalooga!!!"}
+                            });
+                            
+                        });
+                    }
+                },
+                'and the username and password match' : {
+                    'then I join the channel and receive a response with status "ok"' : function () {
+                        const client = connect_and_create_guest();
+
+                        client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                            client.jwt = message.payload.response.jwt;
+                            client.user_id = message.payload.response.id;
+                            client.username = message.payload.response.username;
+
+                            client.onMessage({topic: "users:"+client.user_id, event: "phx_reply"}, function (join_user_channel_message) {
+                                assert.equal(join_user_channel_message.payload.status, 'ok');
+                                client.disconnect();
+                            });
+                            
+                            client.join_channel({
+                                channel_name: "users:"+client.user_id,
+                                payload: {username: client.username, password: "correct horse battery staple"}
+                            });
+                            
+                        });
+                    }
+                }
             }
         },
         "and I join my user channel" : {
@@ -460,48 +527,62 @@ vows.describe('Zlack NodeJS client').addBatch({
             //     }
             // }
         },
-        "and I join a room channel" : {
-            'and the payload contains "room_id": <some room id>, ' : {
-                // 'I receive a response with "status": "ok"' : function () {
-                //     var ws = new WebSocket(url);
-                //     ws.on('open', function open() {
-                //         client.join_channel("guest", {}, ws)
-                //     });
+        // "and I have a valid JWT and user id" : {
+        //     "I can join a room that I am subscribed to and receive a response with status 'ok'" : function () {
+        //         const client = connect_and_create_guest();
 
-                //     var id = ""
-                //     var jwt = ""
-                //     var username = ""
+        //         client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+        //             client.jwt = message.payload.response.jwt;
+        //             client.user_id = message.payload.response.id;
+        //             client.username = message.payload.response.username;
 
-                //     ws.onmessage = function(in_message) {
-                //         const data = JSON.parse(in_message.data);
-                //         if (data.topic === 'guest') {
-                //             id = data.payload.response.id;
-                //             jwt = data.payload.response.jwt;
-                //             username = data.payload.response.username;
-                //             client.join_user_channel(id, jwt, username, ws);
-                //         }
-                //         else if ((data.topic === ('users:'+id)) && (data.event === 'phx_reply')) { 
-                //             client.create_room({
-                //                 user_id: id,
-                //                 room_title: "BanefulDomain",
-                //                 room_subtitle: "insert any room subtitle here",
-                //                 is_publicly_searchable: true,
-                //                 permissions: "may_request_read_write_subscription"
-                //             }, ws);
-                //         }
-                //         else if ((data.topic === ('users:'+id)) && (data.event === 'create_room')) { 
-                //             // assert.equal(data.payload.status, "ok")
-                //             // ws.close()
-                //         }
+        //             const user_channel = "users:"+client.user_id;
 
-                //         else if ((data.topic === ('rooms:'+room_id)) && (data.event === 'phx_reply')) { 
-                //             assert.equal(data.payload.status, "ok")
-                //             ws.close()
-                //         }
+        //             client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+        //                 const room_id = create_room_message.payload.response.room_id;
+        //                 const room_channel_name = "rooms:"+room_id
 
-                //     }
-                // }
+        //                 client.onMessage({topic: room_channel_name, event: "phx_reply"}, function (join_channel_message) {
+        //                     assert.equal(join_channel_message.payload.status, "ok");
+        //                     client.disconnect();
+        //                 });
+
+        //                 client.join_channel({
+        //                     channel_name: room_channel_name,
+        //                     payload: {jwt: client.jwt, user_id: client.user_id}
+        //                 });
+        //             });
+        //              
+        //             create_room({
+        //                 client: client,
+        //                 room_title: "BanefulDomain",
+        //                 room_subtitle: "just a hangout place",
+        //                 is_publicly_searchable: true,
+        //                 permissions: "must_be_invited"
+        //             });
+        //             
+        //         });
+        //     }
+        // },
+        "and I attempt join a room channel with an empty payload" : {
+            "and I am not subscribed to that room" : {
+                'I receive a message with "status:" "error: must be subscribed to room in order to join"' : function () {
+                    flunk();
+                }
             },
+            "and I have not joined my user channel successfully" : {
+                'I receive a message with "status:" "error: must have joined user_channel in order to join room"' : function () {
+                    flunk();
+                }
+            },
+            'and I am subscribed to that room and have joined my user channel successfully' : {
+                'I a message with "status": "ok"' : function () {
+                    flunk();
+                }
+            }
+        },
+        'and I join a room channel with "status": "ok"' : {
+
             "other users in the room channel receive a notification that I joined" : function () {
                 flunk()
             },

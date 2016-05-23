@@ -1,10 +1,39 @@
 defmodule Zlack.UserChannel do
   use Zlack.Web, :channel
 
-  alias Zlack.{MessageQueue}
+  @doc """
+  This channel serves general purpose user functions and acts as a gatekeeper for the rest of the application. All authentication occurs in join/3.
+  """
 
-  def join("users:" <> _user_id = _channel_name, %{"jwt" => _jwt}, socket) do
-    {:ok, socket}
+  alias Zlack.{User, Repo, MessageQueue, GuardianSerializer, Session}
+  import Ecto.Query, only: [from: 2]
+
+  def join("users:" <> _user_id = _channel_name, %{"jwt" => token}, socket) do
+    case Guardian.decode_and_verify(token) do
+      {:ok, claims} ->
+        case GuardianSerializer.from_token(claims["sub"]) do
+          {:ok, user} ->
+            {:ok, assign(socket, :current_user, user)}
+          {:error, _reason} ->
+            join_error
+        end
+      {:error, _reason} ->
+        join_error
+    end
+  end
+
+  def join("users:" <> _user_id = _channel_name, %{"username" => username, "password" => password} = session_params, socket) do
+    case Zlack.Session.authenticate(session_params) do
+      {:ok, user} ->
+        {:ok, jwt, _full_claims} = user |> Guardian.encode_and_sign(:token)
+        {:ok, assign(socket, :current_user, user)}
+      :error ->
+        {:error, %{"reason": "invalid username and password combination"}}
+    end
+  end
+
+  defp join_error do
+    {:error, %{"reason": "invalid jwt"}}
   end
 
   def handle_in("create_room" = event, %{

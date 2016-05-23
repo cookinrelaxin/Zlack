@@ -1,8 +1,8 @@
 defmodule Zlack.Session do
   alias Zlack.{Repo, User}
 
-  def authenticate(%{"email" => email, "password" => password}) do
-    user = Repo.get_by(User, email: String.downcase(email))
+  def authenticate(%{"username" => username, "password" => password}) do
+    user = Repo.get_by(User, username: username)
 
     case check_password(user, password) do
       true -> {:ok, user}
