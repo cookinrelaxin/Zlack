@@ -1,11 +1,45 @@
 defmodule Zlack.RoomChannel do
   use Phoenix.Channel
 
-  alias Zlack.{Repo, Room, User, UserRoom, MessageQueue}
+  alias Zlack.{Repo, Room, User, MessageQueue, GuardianSerializer}
 
-  def join("rooms:" <> room_id = channel_name, %{"user_id" => user_id, "jwt" => jwt}, socket) do
-    {:error, %{reason: "function not implemented"}}
+  def join("rooms:" <> room_id = channel_name, %{"jwt" => token}, socket) do
+    case Guardian.decode_and_verify(token) do
+      {:ok, claims} ->
+        case GuardianSerializer.from_token(claims["sub"]) do
+          {:ok, user} ->
+            case is_subscribed(%{user: user, room_id: String.to_integer(room_id)}) do
+              true ->
+                {:ok, assign(socket, :current_user, user)}
+              false ->
+                {:error, %{"reason" => "must be subscribed to room in order to join"}}
+            end
+          {:error, _reason} ->
+            join_error
+        end
+      {:error, _reason} ->
+        join_error
+    end
+  end
 
+  defp is_subscribed(%{user: user, room_id: room_id}) do
+    owned_rooms = Repo.all(Ecto.assoc(user, :rooms))
+    owned_room_ids = Enum.map(owned_rooms, fn(o) -> o.id end)
+    IO.inspect owned_rooms
+    IO.inspect owned_room_ids
+    IO.inspect room_id
+    case room_id in owned_room_ids do
+      true ->
+        IO.puts "it is true!!!"
+        true
+      false ->
+        subscriptions = Repo.all(Ecto.assoc(user, :subscriptions))
+        room_id in Enum.map(subscriptions, fn(o) -> o.room end)
+    end
+  end
+
+  defp join_error do
+    {:error, %{"reason": "invalid jwt"}}
   end
 
   # def join("rooms:" <> room_id = channel_name, %{"user_id" => user_id}, socket) do

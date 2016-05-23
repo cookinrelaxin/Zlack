@@ -527,57 +527,118 @@ vows.describe('Zlack NodeJS client').addBatch({
             //     }
             // }
         },
-        // "and I have a valid JWT and user id" : {
-        //     "I can join a room that I am subscribed to and receive a response with status 'ok'" : function () {
-        //         const client = connect_and_create_guest();
-
-        //         client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
-        //             client.jwt = message.payload.response.jwt;
-        //             client.user_id = message.payload.response.id;
-        //             client.username = message.payload.response.username;
-
-        //             const user_channel = "users:"+client.user_id;
-
-        //             client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
-        //                 const room_id = create_room_message.payload.response.room_id;
-        //                 const room_channel_name = "rooms:"+room_id
-
-        //                 client.onMessage({topic: room_channel_name, event: "phx_reply"}, function (join_channel_message) {
-        //                     assert.equal(join_channel_message.payload.status, "ok");
-        //                     client.disconnect();
-        //                 });
-
-        //                 client.join_channel({
-        //                     channel_name: room_channel_name,
-        //                     payload: {jwt: client.jwt, user_id: client.user_id}
-        //                 });
-        //             });
-        //              
-        //             create_room({
-        //                 client: client,
-        //                 room_title: "BanefulDomain",
-        //                 room_subtitle: "just a hangout place",
-        //                 is_publicly_searchable: true,
-        //                 permissions: "must_be_invited"
-        //             });
-        //             
-        //         });
-        //     }
-        // },
-        "and I attempt join a room channel with an empty payload" : {
+        "and I attempt join a room channel with a jwt" : {
             "and I am not subscribed to that room" : {
-                'I receive a message with "status:" "error: must be subscribed to room in order to join"' : function () {
-                    flunk();
+                'I receive a message with "status:" "error" and reason: "must be subscribed to room in order to join"' : function () {
+                    const client = connect_and_create_guest();
+
+                    client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                        client.jwt = message.payload.response.jwt;
+                        client.user_id = message.payload.response.id;
+                        client.username = message.payload.response.username;
+
+                        const user_channel = "users:"+client.user_id;
+
+                        client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                            const room_id = create_room_message.payload.response.room_id;
+                            const room_channel_name = "rooms:"+123456
+
+                            client.onMessage({topic: room_channel_name, event: "phx_reply"}, function (join_channel_message) {
+                                assert.equal(join_channel_message.payload.status, "error");
+                                assert.equal(join_channel_message.payload.response.reason, "must be subscribed to room in order to join");
+                                client.disconnect();
+                            });
+
+                            client.join_channel({
+                                channel_name: room_channel_name,
+                                payload: {jwt: client.jwt}
+                            });
+                        });
+                         
+                        create_room({
+                            client: client,
+                            room_title: "BanefulDomain",
+                            room_subtitle: "just a hangout place",
+                            is_publicly_searchable: true,
+                            permissions: "must_be_invited"
+                        });
+                        
+                    });
                 }
             },
-            "and I have not joined my user channel successfully" : {
-                'I receive a message with "status:" "error: must have joined user_channel in order to join room"' : function () {
-                    flunk();
+            "and the jwt is invalid" : {
+                'I receive a message with "status:" "error: invalid jwt"' : function () {
+                    const client = connect_and_create_guest();
+
+                    client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                        client.jwt = message.payload.response.jwt;
+                        client.user_id = message.payload.response.id;
+                        client.username = message.payload.response.username;
+
+                        const user_channel = "users:"+client.user_id;
+
+                        client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                            const room_id = create_room_message.payload.response.room_id;
+                            const room_channel_name = "rooms:"+room_id
+
+                            client.onMessage({topic: room_channel_name, event: "phx_reply"}, function (join_channel_message) {
+                                assert.equal(join_channel_message.payload.status, "error");
+                                assert.equal(join_channel_message.payload.response.reason, "invalid jwt");
+                                client.disconnect();
+                            });
+
+                            client.join_channel({
+                                channel_name: room_channel_name,
+                                payload: {jwt: "790384yrhapiuerfy-a9s7d3"}
+                            });
+                        });
+                         
+                        create_room({
+                            client: client,
+                            room_title: "BanefulDomain",
+                            room_subtitle: "just a hangout place",
+                            is_publicly_searchable: true,
+                            permissions: "must_be_invited"
+                        });
+                        
+                    });
                 }
             },
-            'and I am subscribed to that room and have joined my user channel successfully' : {
+            'and I am subscribed to that room and the jwt is valid' : {
                 'I a message with "status": "ok"' : function () {
-                    flunk();
+                    const client = connect_and_create_guest();
+
+                    client.onMessage({topic: "guest", event: "phx_reply"}, function (message) {
+                        client.jwt = message.payload.response.jwt;
+                        client.user_id = message.payload.response.id;
+                        client.username = message.payload.response.username;
+
+                        const user_channel = "users:"+client.user_id;
+
+                        client.onMessage({topic: user_channel, event: "create_room"}, function (create_room_message) {
+                            const room_id = create_room_message.payload.response.room_id;
+                            const room_channel_name = "rooms:"+room_id
+
+                            client.onMessage({topic: room_channel_name, event: "phx_reply"}, function (join_channel_message) {
+                                assert.equal(join_channel_message.payload.status, "ok");
+                                client.disconnect();
+                            });
+
+                            client.join_channel({
+                                channel_name: room_channel_name,
+                                payload: {jwt: client.jwt}
+                            });
+                        });
+                         
+                        create_room({
+                            client: client,
+                            room_title: "BanefulDomain",
+                            room_subtitle: "just a hangout place",
+                            is_publicly_searchable: true,
+                            permissions: "must_be_invited"
+                        });
+                        
+                    });
                 }
             }
         },
@@ -589,6 +650,8 @@ vows.describe('Zlack NodeJS client').addBatch({
             "and I post a message to the channel" : {
                 "then other users in channel receive my message" : function () {
                     flunk()
+                },
+                "then users subscribed to the channel who are not currently connected will receive the message when they connect" : function () {
                 }
             },
             "and another user posts a message to the channel" : {

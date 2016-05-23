@@ -5,7 +5,7 @@ defmodule Zlack.UserChannel do
   This channel serves general purpose user functions and acts as a gatekeeper for the rest of the application. All authentication occurs in join/3.
   """
 
-  alias Zlack.{User, Repo, MessageQueue, GuardianSerializer, Session}
+  alias Zlack.{User, Repo, MessageQueue, GuardianSerializer, Session, RoomActions}
   import Ecto.Query, only: [from: 2]
 
   def join("users:" <> _user_id = _channel_name, %{"jwt" => token}, socket) do
@@ -71,8 +71,18 @@ defmodule Zlack.UserChannel do
           "auto_grant_read_subscription",
           "must_be_invited"]) do
           true ->
-            push socket, event, %{status: :ok, response: %{room_id: 452}}
-            {:noreply, socket}
+            case RoomActions.create(%{
+              :owner => socket.assigns.current_user.id,
+              :title => room_title,
+              :subtitle => room_subtitle,
+              :is_publicly_searchable => is_publicly_searchable,
+              :permission_class => permissions}) do
+              {:ok, room} ->
+                push socket, event, %{status: :ok, response: %{room_id: room.id}}
+                {:noreply, socket}
+              _ ->
+                push socket, event, %{status: "error: wtf!"}
+            end
           false ->
             push socket, event, %{status: "error: invalid permissions"}
             {:noreply, socket}

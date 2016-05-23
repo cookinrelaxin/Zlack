@@ -1,20 +1,30 @@
 defmodule Zlack.Room do
   use Zlack.Web, :model
 
-  schema "rooms" do
-    field :name, :string
-    field :purpose, :string
+  alias Zlack.{User, Message, Subscription}
 
-    belongs_to :user, User
-    has_many :messages, Message
-    has_many :user_rooms, UserRoom
-    has_many :members, through: [:user_rooms, :user]
+  @valid_permissions ~w(
+    may_request_read_write_subscription
+    may_request_read_subscription
+    auto_grant_read_write_subscription
+    auto_grant_read_subscription
+    invite_only
+  )
+
+  schema "rooms" do
+    field :title, :string
+    field :subtitle, :string
+    field :permission_class, :string
+
+    belongs_to :user, User, foreign_key: :owner
+    #has_many :messages, Message
+    has_many :subscriptions, Subscription, foreign_key: :room
 
     timestamps
   end
 
-  @required_fields ~w(name purpose user_id)
-  @optional_fields ~w(messages)
+  @required_fields ~w(title owner permission_class)
+  @optional_fields ~w(subtitle)
 
   @doc """
   Creates a changeset based on the `model` and `params`.
@@ -24,6 +34,7 @@ defmodule Zlack.Room do
   """
   def changeset(model, params \\ :empty) do
     model
+    #|> validate_inclusion(:permission_class, @valid_permissions)
     |> cast(params, @required_fields, @optional_fields)
   end
 end
